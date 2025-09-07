@@ -84,6 +84,30 @@ func subtractHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+func multiplyHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		json.NewEncoder(w).Encode(ErrorResponse{Error: "Method not allowed"})
+		return
+	}
+
+	var req MathRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(ErrorResponse{Error: "Invalid JSON"})
+		return
+	}
+
+	result := req.Num1 * req.Num2
+	response := MathResponse{
+		Result: result,
+		Status: "success",
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "index.html")
 }
@@ -93,6 +117,7 @@ func main() {
 	http.HandleFunc("/api/hello", helloHandler)
 	http.HandleFunc("/api/add", addHandler)
 	http.HandleFunc("/api/subtract", subtractHandler)
+	http.HandleFunc("/api/multiply", multiplyHandler)
 	
 	fmt.Println("Server starting on port 8080...")
 	fmt.Println("Available endpoints:")
@@ -100,5 +125,6 @@ func main() {
 	fmt.Println("  GET  /api/hello - Hello API")
 	fmt.Println("  POST /api/add   - Addition service")
 	fmt.Println("  POST /api/subtract - Subtraction service")
+	fmt.Println("  POST /api/multiply - Multiplication service")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
